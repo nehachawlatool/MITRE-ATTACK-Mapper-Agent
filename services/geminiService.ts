@@ -1,14 +1,27 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AnalysisResult } from "../types";
 
-const apiKey = process.env.API_KEY;
+// Helper to safely retrieve API key in different environments (Vite, Node, etc.)
+const getApiKey = (): string | undefined => {
+  // Check for Vite environment variable (Vercel standard for React)
+  if (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_KEY) {
+    return (import.meta as any).env.VITE_API_KEY;
+  }
+  // Check for Node.js / Webpack environment variable
+  if (typeof process !== 'undefined' && process.env?.API_KEY) {
+    return process.env.API_KEY;
+  }
+  return undefined;
+};
+
+const apiKey = getApiKey();
 
 // Use gemini-3-pro-preview for complex reasoning tasks like mapping TTPs
 const MODEL_NAME = "gemini-3-pro-preview";
 
 export const mapToMitre = async (input: string): Promise<AnalysisResult> => {
   if (!apiKey) {
-    throw new Error("API Key is missing.");
+    throw new Error("API Key is missing. Please check your environment variables (VITE_API_KEY).");
   }
 
   const ai = new GoogleGenAI({ apiKey });
