@@ -1,0 +1,5 @@
+{
+  "name": "MITRE ATT&CK Mapper Agent",
+  "description": "An AI-powered cybersecurity agent that maps detection rules, use cases, and threat scenarios to MITRE ATT&CK techniques with high precision.",
+  "requestFramePermissions": []
+}
