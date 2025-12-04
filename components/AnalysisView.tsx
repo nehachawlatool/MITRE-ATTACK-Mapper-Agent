@@ -3,12 +3,12 @@ import { AnalysisResult } from '../types';
 import ResultCard from './ResultCard';
 
 interface AnalysisViewProps {
-  result: AnalysisResult | null;
+  results: AnalysisResult[] | null;
   isLoading: boolean;
   error: string | null;
 }
 
-const AnalysisView: React.FC<AnalysisViewProps> = ({ result, isLoading, error }) => {
+const AnalysisView: React.FC<AnalysisViewProps> = ({ results, isLoading, error }) => {
   if (isLoading) {
     return (
       <div className="h-full flex flex-col items-center justify-center p-8 bg-cyber-900 relative overflow-hidden">
@@ -48,7 +48,7 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ result, isLoading, error })
     );
   }
 
-  if (!result) {
+  if (!results || results.length === 0) {
     return (
       <div className="h-full flex flex-col items-center justify-center p-8 bg-cyber-900 text-gray-500">
         <svg className="w-20 h-20 mb-4 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -62,52 +62,71 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ result, isLoading, error })
 
   return (
     <div className="h-full overflow-y-auto bg-cyber-900 p-6 scrollbar-hide">
-      <div className="mb-8 p-6 bg-gradient-to-br from-cyber-800 to-cyber-900 border border-cyber-700 rounded-xl shadow-2xl">
-        <div className="flex justify-between items-start mb-4">
-            <div>
-                 <h2 className="text-2xl font-bold text-white mb-2">Analysis Report</h2>
-                 <p className="text-gray-400 text-sm leading-relaxed max-w-3xl">{result.summary}</p>
-            </div>
-            <div className="text-right">
-                <div className="inline-flex flex-col items-end">
-                    <span className="text-xs text-gray-500 uppercase tracking-widest mb-1">Risk Score</span>
-                    <span className={`text-4xl font-mono font-bold ${
-                        result.overall_risk_score > 75 ? "text-red-500" : 
-                        result.overall_risk_score > 40 ? "text-yellow-500" : "text-green-500"
-                    }`}>
-                        {result.overall_risk_score}
-                    </span>
-                </div>
-            </div>
-        </div>
-        
-        <div className="flex gap-4 mt-4 pt-4 border-t border-cyber-700/50">
-            <div>
-                <span className="text-xs text-gray-500 uppercase block mb-1">Primary Tactic</span>
-                <span className="text-cyber-accent font-semibold">{result.primary_tactic || "Unknown"}</span>
-            </div>
-             <div>
-                <span className="text-xs text-gray-500 uppercase block mb-1">Techniques Mapped</span>
-                <span className="text-white font-semibold">{result.mappings.length}</span>
-            </div>
-        </div>
-      </div>
+      <div className="space-y-8">
+        {results.map((result, idx) => (
+            <div key={idx} className="animate-[fadeIn_0.5s_ease-out]">
+                 {/* Input Source Header for Bulk Mode */}
+                 {result.input_source && (
+                    <div className="mb-2 pl-4 border-l-2 border-cyber-accent/30">
+                        <p className="text-xs text-cyber-accent uppercase tracking-widest mb-1">Source Input {idx + 1}</p>
+                        <p className="text-gray-400 font-mono text-xs truncate opacity-80">{result.input_source}</p>
+                    </div>
+                 )}
 
-      <div className="space-y-4">
-        <div className="flex items-center justify-between mb-2">
-            <h3 className="text-lg font-semibold text-gray-200">Identified Techniques</h3>
-            <span className="text-xs text-gray-500 font-mono">MITRE ATT&CK v15</span>
-        </div>
-        
-        {result.mappings.length === 0 ? (
-           <p className="text-gray-500 italic">No specific MITRE techniques were confidently mapped to this input.</p>
-        ) : (
-            <div className="grid grid-cols-1 gap-4">
-                {result.mappings.map((tech, index) => (
-                    <ResultCard key={`${tech.id}-${index}`} technique={tech} />
-                ))}
+                 <div className="mb-4 p-6 bg-gradient-to-br from-cyber-800 to-cyber-900 border border-cyber-700 rounded-xl shadow-2xl">
+                    <div className="flex justify-between items-start mb-4">
+                        <div>
+                             <h2 className="text-2xl font-bold text-white mb-2">Analysis Report</h2>
+                             <p className="text-gray-400 text-sm leading-relaxed max-w-3xl">{result.summary}</p>
+                        </div>
+                        <div className="text-right">
+                            <div className="inline-flex flex-col items-end">
+                                <span className="text-xs text-gray-500 uppercase tracking-widest mb-1">Risk Score</span>
+                                <span className={`text-4xl font-mono font-bold ${
+                                    result.overall_risk_score > 75 ? "text-red-500" : 
+                                    result.overall_risk_score > 40 ? "text-yellow-500" : "text-green-500"
+                                }`}>
+                                    {result.overall_risk_score}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="flex gap-4 mt-4 pt-4 border-t border-cyber-700/50">
+                        <div>
+                            <span className="text-xs text-gray-500 uppercase block mb-1">Primary Tactic</span>
+                            <span className="text-cyber-accent font-semibold">{result.primary_tactic || "Unknown"}</span>
+                        </div>
+                         <div>
+                            <span className="text-xs text-gray-500 uppercase block mb-1">Techniques Mapped</span>
+                            <span className="text-white font-semibold">{result.mappings.length}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-lg font-semibold text-gray-200">Identified Techniques</h3>
+                        <span className="text-xs text-gray-500 font-mono">MITRE ATT&CK v15</span>
+                    </div>
+                    
+                    {result.mappings.length === 0 ? (
+                       <p className="text-gray-500 italic">No specific MITRE techniques were confidently mapped to this input.</p>
+                    ) : (
+                        <div className="grid grid-cols-1 gap-4">
+                            {result.mappings.map((tech, i) => (
+                                <ResultCard key={`${idx}-${tech.id}-${i}`} technique={tech} />
+                            ))}
+                        </div>
+                    )}
+                </div>
+                
+                {/* Divider if multiple results */}
+                {results.length > 1 && idx < results.length - 1 && (
+                     <div className="my-8 border-t border-dashed border-cyber-700 w-full" />
+                )}
             </div>
-        )}
+        ))}
       </div>
     </div>
   );

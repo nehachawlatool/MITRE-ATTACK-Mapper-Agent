@@ -32,6 +32,7 @@ export interface MitreTechnique {
 }
 
 export interface AnalysisResult {
+  input_source?: string; // Added for bulk mapping context
   summary: string;
   mappings: MitreTechnique[];
   primary_tactic: string;

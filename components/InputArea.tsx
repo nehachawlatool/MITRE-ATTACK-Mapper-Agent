@@ -7,11 +7,21 @@ interface InputAreaProps {
   setInput: (value: string) => void;
   onAnalyze: () => void;
   isAnalyzing: boolean;
+  isBulkMode: boolean;
+  setIsBulkMode: (value: boolean) => void;
 }
 
-const InputArea: React.FC<InputAreaProps> = ({ input, setInput, onAnalyze, isAnalyzing }) => {
+const InputArea: React.FC<InputAreaProps> = ({ 
+  input, 
+  setInput, 
+  onAnalyze, 
+  isAnalyzing,
+  isBulkMode,
+  setIsBulkMode
+}) => {
   const handleExampleClick = (example: ExampleScenario) => {
     setInput(example.content);
+    setIsBulkMode(false); // Reset bulk mode when loading a single example
   };
 
   return (
@@ -23,15 +33,28 @@ const InputArea: React.FC<InputAreaProps> = ({ input, setInput, onAnalyze, isAna
           </svg>
           Input Source
         </h2>
-        <span className="text-xs text-gray-500 bg-cyber-900 px-2 py-1 rounded">Text / Log / Code</span>
+        
+        <div className="flex items-center space-x-2">
+            <span className={`text-xs ${isBulkMode ? 'text-white' : 'text-gray-500'}`}>Bulk Mode</span>
+            <button 
+                onClick={() => setIsBulkMode(!isBulkMode)}
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-cyber-accent focus:ring-offset-2 focus:ring-offset-cyber-900 ${isBulkMode ? 'bg-cyber-accent' : 'bg-gray-700'}`}
+            >
+                <span
+                    className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${isBulkMode ? 'translate-x-5' : 'translate-x-1'}`}
+                />
+            </button>
+        </div>
       </div>
 
       <div className="flex-grow relative group">
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Paste threat intelligence report, Splunk query, YARA rule, or incident description here..."
-          className="w-full h-full bg-cyber-900 text-gray-300 p-4 rounded-lg border border-cyber-700 focus:border-cyber-accent focus:ring-1 focus:ring-cyber-accent outline-none resize-none font-mono text-sm leading-relaxed transition-all"
+          placeholder={isBulkMode 
+            ? "Paste multiple items here (one per line)...\n\nExample:\nSuspicious powershell command detected\nUser added to Domain Admins\nFirewall rule disabled via netsh" 
+            : "Paste threat intelligence report, Splunk query, YARA rule, or incident description here..."}
+          className="w-full h-full bg-cyber-900 text-gray-300 p-4 rounded-lg border border-cyber-700 focus:border-cyber-accent focus:ring-1 focus:ring-cyber-accent outline-none resize-none font-mono text-sm leading-relaxed transition-all placeholder-gray-600"
         />
         {/* Decorative corner accents */}
         <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-cyber-600 rounded-tl pointer-events-none group-focus-within:border-cyber-accent transition-colors"></div>
@@ -72,10 +95,10 @@ const InputArea: React.FC<InputAreaProps> = ({ input, setInput, onAnalyze, isAna
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              MAPPING TTPs...
+              {isBulkMode ? 'BATCH PROCESSING...' : 'MAPPING TTPs...'}
             </span>
           ) : (
-            'ANALYZE & MAP'
+            isBulkMode ? 'ANALYZE BATCH' : 'ANALYZE & MAP'
           )}
         </button>
       </div>

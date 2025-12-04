@@ -7,8 +7,9 @@ import { mapToMitre } from './services/geminiService';
 
 const App: React.FC = () => {
   const [input, setInput] = useState<string>('');
-  const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [results, setResults] = useState<AnalysisResult[] | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
+  const [isBulkMode, setIsBulkMode] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleAnalyze = async () => {
@@ -16,11 +17,11 @@ const App: React.FC = () => {
 
     setIsAnalyzing(true);
     setError(null);
-    setResult(null);
+    setResults(null);
 
     try {
-      const data = await mapToMitre(input);
-      setResult(data);
+      const data = await mapToMitre(input, isBulkMode);
+      setResults(data);
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred during analysis.");
     } finally {
@@ -40,13 +41,15 @@ const App: React.FC = () => {
             setInput={setInput} 
             onAnalyze={handleAnalyze}
             isAnalyzing={isAnalyzing}
+            isBulkMode={isBulkMode}
+            setIsBulkMode={setIsBulkMode}
           />
         </div>
 
         {/* Right Side: Results */}
         <div className="w-full md:w-2/3 lg:w-3/5 h-1/2 md:h-full bg-cyber-900 relative">
           <AnalysisView 
-            result={result}
+            results={results}
             isLoading={isAnalyzing}
             error={error}
           />
