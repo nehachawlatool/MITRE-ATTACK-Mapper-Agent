@@ -36,35 +36,41 @@ const ANALYSIS_SCHEMA: Schema = {
   required: ["summary", "mappings", "primary_tactic", "overall_risk_score"]
 };
 
+// Switch to Node.js runtime for better compatibility with env vars and libraries
 export const config = {
-  runtime: 'edge',
+  runtime: 'nodejs',
 };
 
-export default async function handler(req: Request) {
-  if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
+export default async function handler(req: any, res: any) {
+  // Support both standard Request (Edge) and NextApiRequest (Node) patterns
+  const method = req.method;
+  
+  if (method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // 1. Authentication Check (Optional but Recommended for Agents)
-    // If you set AMETHYST_API_KEY in Vercel, this will enforce security.
-    const authHeader = req.headers.get('x-api-key');
+    // 1. Authentication Check
+    // If AMETHYST_API_KEY is set in Vercel, enforce it.
+    const authHeader = req.headers['x-api-key'];
     const secretKey = process.env.AMETHYST_API_KEY;
 
-    if (secretKey && authHeader !== secretKey) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+    if (secretKey) {
+      if (!authHeader || authHeader !== secretKey) {
+         return res.status(401).json({ error: 'Unauthorized: Invalid API Key' });
+      }
     }
 
     // 2. Parse Input
-    const body = await req.json();
-    const { input, isBulk } = body;
+    const { input, isBulk } = req.body;
 
     if (!input) {
-      return new Response(JSON.stringify({ error: 'Input is required' }), { status: 400 });
+      return res.status(400).json({ error: 'Input is required' });
     }
 
     if (!process.env.API_KEY) {
-      return new Response(JSON.stringify({ error: 'Server misconfiguration: API_KEY missing' }), { status: 500 });
+      console.error("Server API_KEY is missing");
+      return res.status(500).json({ error: 'Server misconfiguration: API_KEY missing' });
     }
 
     // 3. Call Gemini
@@ -122,13 +128,10 @@ export default async function handler(req: Request) {
     // Normalize response structure
     const data = isBulk ? (parsed as any).results : [parsed];
 
-    return new Response(JSON.stringify(data), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return res.status(200).json(data);
 
   } catch (error: any) {
     console.error("API Error:", error);
-    return new Response(JSON.stringify({ error: error.message || 'Internal Server Error' }), { status: 500 });
+    return res.status(500).json({ error: error.message || 'Internal Server Error' });
   }
 }

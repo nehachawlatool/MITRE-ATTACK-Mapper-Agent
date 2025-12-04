@@ -3,6 +3,7 @@ info:
   title: MITRE ATT&CK Mapper API
   description: Maps cybersecurity scenarios and logs to MITRE ATT&CK techniques using Gemini AI.
   version: 1.0.0
+# IMPORTANT: Update this URL to your actual Vercel App URL
 servers:
   - url: https://mitre-attack-mapper.vercel.app
     description: Production Server
